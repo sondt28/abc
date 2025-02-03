@@ -5,3 +5,7 @@ import android.widget.ImageView
 fun ImageView.flip() {
     this.scaleX = -this.scaleX
 }
+
+fun ImageView.setSizeImage(size: Int) {
+
+}

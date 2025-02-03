@@ -1,6 +1,5 @@
 package com.example.myapplication.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -10,14 +9,15 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
-import com.example.myapplication.data.model.Shark
+import com.example.myapplication.data.model.SeaCreature
+import com.example.myapplication.data.model.SeaCreatureData
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.ext.flip
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel by lazy {
-        MainViewModel(Pair(1080f, 1962f))
+        MainViewModel(Pair(1440f, 2397f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,36 +54,40 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_search -> {
-                Toast.makeText(this, "Search clicked", Toast.LENGTH_SHORT).show()
-                true
-            }
-
-            R.id.action_settings -> {
-                Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
+            R.id.action_tini_tuna -> {
+                val (randomX, randomY) = generateRandomPosition()
+                viewModel.createSpecificSeaCreature(Pair(randomX, randomY))
                 true
             }
 
             R.id.action_random -> {
-                val randomX = Random.nextInt(0, binding.frameLayout.width - 200).toFloat()
-                val randomY = Random.nextInt(0, binding.frameLayout.height - 200).toFloat()
-                val shark = Shark(position = Pair(randomX, randomY))
-
-                val iv = ImageView(this).apply {
-                    id = shark.id.toInt()
-                    setBackgroundColor(Color.BLUE)
-                    setImageResource(R.drawable.nemo)
-                    layoutParams = FrameLayout.LayoutParams(50, 50)
-                    x = randomX
-                    y = randomY
-                }
-
-                binding.root.addView(iv)
-                viewModel.addSeaCreature(shark)
+                addRandomSeaCreature()
                 true
             }
 
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun addRandomSeaCreature() {
+        val (randomX, randomY) = generateRandomPosition()
+        viewModel.createRandomSeaCreature(Pair(randomX, randomY))
+    }
+
+    private fun generateRandomPosition(): Pair<Float, Float> {
+        val x = Random.nextInt(0, binding.frameLayout.width - 200).toFloat()
+        val y = Random.nextInt(0, binding.frameLayout.height - 200).toFloat()
+
+        return Pair(x, y)
+    }
+
+    private fun createSeaCreatureImageView(seaCreature: SeaCreatureData): ImageView {
+        return ImageView(this).apply {
+            id = seaCreature.id.toInt()
+            setImageResource(seaCreature.image)
+            layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
+            x = seaCreature.position.first
+            y = seaCreature.position.second
         }
     }
 
@@ -92,10 +96,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        viewModel.seaCreatures
-            .map { it }
-            .onEach {
-                Log.d("SonLN", "list : $it")
+        viewModel.uiState
+            .map { it.seaCreatures }
+            .onEach { seaCreatures ->
+                Log.d("SonLN", "setupObservers: $seaCreatures")
+                binding.frameLayout.removeAllViews()
+
+                seaCreatures.forEach { seaCreature ->
+                    val imageView = ImageView(this@MainActivity).apply {
+                        id = seaCreature.id.toInt()
+                        setImageResource(seaCreature.image)
+                        layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
+                        x = seaCreature.position.first
+                        y = seaCreature.position.second
+                    }
+                    binding.frameLayout.addView(imageView)
+                }
             }
             .launchIn(lifecycleScope)
     }
