@@ -1,6 +1,5 @@
 package com.example.myapplication.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.SeaCreature
@@ -25,7 +24,7 @@ class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
 
     private fun collectSeaCreatures() {
         viewModelScope.launch {
-            seaCreatureRepository.noti.collect { creatures ->
+            seaCreatureRepository.notifyChangePosition.collect { creatures ->
                 _uiState.update { it.copy(seaCreatures = getSeaCreaturesData()) }
             }
         }
@@ -55,6 +54,10 @@ class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
         }
 
         return tiniTuna
+    }
+
+    fun removeAll() {
+        seaCreatureRepository.removeAll()
     }
 }
 

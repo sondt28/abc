@@ -3,7 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_random"
+        android:icon="@drawable/ic_random"
+        app:showAsAction="always"
         android:title="Random" />
+
+    <item
+        android:id="@+id/action_clear"
+        android:icon="@drawable/ic_clear"
+        app:showAsAction="always"
+        android:title="Clear" />
+
     <item
         android:id="@+id/action_tini_tuna"
         android:title="Tini Tuna" />

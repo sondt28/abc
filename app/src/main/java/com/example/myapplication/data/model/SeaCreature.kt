@@ -1,20 +1,46 @@
 package com.example.myapplication.data.model
 
 import com.example.myapplication.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 abstract class SeaCreature(
     val id: Long = System.currentTimeMillis(),
-    var size: Int,
     var velocity: Pair<Int, Int> = Pair(0, 0),
-    val canEatOther: Boolean = false,
-    val image: Int,
     var position: Pair<Float, Float> = Pair(0f, 0f),
+    var size: Int,
+    val canEatOther: Boolean = false,
+    val imageRes: Int,
     var moveBehavior: MoveBehavior
 ) {
+    private var job: Job? = null
+
     abstract fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float>
 
+    fun startSwim(scope: CoroutineScope, bounds: Pair<Float, Float>) {
+        job = scope.launch {
+            while (job?.isActive == true) {
+                delay(16)
+                position = swimming(bounds)
+            }
+        }
+    }
+
+    fun stopSwim() {
+        job?.cancel()
+    }
+
     fun increaseSizeAfterEating() {
-        this.size += 20
+        this.size += 5
+    }
+
+    fun turnAround(seaCreature: SeaCreature) {
+        this.velocity = Pair(
+            if (seaCreature.velocity.first < 0) -velocity.first else velocity.first,
+            if (seaCreature.velocity.second < 0) -velocity.second else velocity.second
+        )
     }
 }
 
@@ -22,14 +48,14 @@ class Shark(
     size: Int = 250,
     velocity: Pair<Int, Int> = Pair(8, 2),
     canEatOther: Boolean = true,
-    image: Int = R.drawable.shark,
+    imageRes: Int = R.drawable.img_shark,
     position: Pair<Float, Float>,
     moveBehavior: MoveBehavior = MoveZicZac()
 ) : SeaCreature(
     size = size,
     velocity = velocity,
     canEatOther = canEatOther,
-    image = image,
+    imageRes = imageRes,
     position = position,
     moveBehavior = moveBehavior
 ) {
@@ -40,17 +66,17 @@ class Shark(
 }
 
 class TiniTuna(
-    size: Int = 80,
+    size: Int = 100,
     velocity: Pair<Int, Int> = Pair(3, 2),
     canEatOther: Boolean = false,
-    image: Int = R.drawable.tuna,
+    imageRes: Int = R.drawable.img_tuna,
     position: Pair<Float, Float>,
     moveBehavior: MoveBehavior = MoveHorizontal()
 ) : SeaCreature(
     size = size,
     velocity = velocity,
     canEatOther = canEatOther,
-    image = image,
+    imageRes = imageRes,
     position = position,
     moveBehavior = moveBehavior
 ) {

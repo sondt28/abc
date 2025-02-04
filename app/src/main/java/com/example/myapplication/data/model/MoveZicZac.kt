@@ -1,9 +1,7 @@
 package com.example.myapplication.data.model
 
-import kotlin.math.sin
 
 class MoveZicZac : MoveBehavior {
-    private var time = 0f
 
     override fun move(seaCreature: SeaCreature, bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (newX, newY) = seaCreature.position
