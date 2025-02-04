@@ -1,14 +1,6 @@
 package com.example.myapplication.data.model
 
 import com.example.myapplication.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlin.math.pow
 
 abstract class SeaCreature(
     val id: Long = System.currentTimeMillis(),
@@ -19,36 +11,11 @@ abstract class SeaCreature(
     var position: Pair<Float, Float> = Pair(0f, 0f),
     var moveBehavior: MoveBehavior
 ) {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-
     abstract fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float>
 
-//    private fun startSwimming(bounds: Pair<Float, Float>) {
-//        coroutineScope.launch {
-//            while (isActive) {
-//                delay(16)
-//                position = swimming(bounds)
-//            }
-//        }
-//    }
-
-    fun isColliding(other: SeaCreature): Boolean {
-        val distance = Math.sqrt(
-            ((position.first - other.position.first).toDouble().pow(2) +
-                    (position.second - other.position.second).toDouble().pow(2))
-        )
-        val collisionDistance = (size + other.size) / 2.0
-        return distance < collisionDistance
+    fun increaseSizeAfterEating() {
+        this.size += 20
     }
-
-    fun increaseSizeAfterEating(sizeToAdd: Int) {
-        this.size += sizeToAdd
-    }
-
-//    fun stopSwimming() {
-//        coroutineScope.cancel()
-//    }
 }
 
 class Shark(

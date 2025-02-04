@@ -31,20 +31,6 @@ class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
         }
     }
 
-//    private fun startSwimming() {
-//        viewModelScope.launch(Dispatchers.Default) {
-//            while (isActive) {
-//                delay(16)
-//                seaCreatureRepository.updateSeaCreaturesPositions()
-//                seaCreatureRepository.checkCollisions()
-//
-//                _uiState.update {
-//                    it.copy(getSeaCreaturesData())
-//                }
-//            }
-//        }
-//    }
-
     private fun getSeaCreaturesData(): List<SeaCreatureData> {
         return seaCreatureRepository.getSeaCreaturesData()
     }

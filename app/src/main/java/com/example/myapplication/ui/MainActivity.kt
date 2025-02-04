@@ -1,23 +1,20 @@
 package com.example.myapplication.ui
 
+import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
-import com.example.myapplication.data.model.SeaCreature
 import com.example.myapplication.data.model.SeaCreatureData
 import com.example.myapplication.databinding.ActivityMainBinding
-import com.example.myapplication.ext.flip
+import com.example.myapplication.ext.flipIfNeed
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -26,8 +23,9 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
+    // 1440f, 2397f
     private val viewModel by lazy {
-        MainViewModel(Pair(1440f, 2397f))
+        MainViewModel(Pair(1080f, 1962f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,13 +97,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.uiState
             .map { it.seaCreatures }
             .onEach { seaCreatures ->
-                Log.d("SonLN", "setupObservers: $seaCreatures")
                 binding.frameLayout.removeAllViews()
-
                 seaCreatures.forEach { seaCreature ->
-                    val imageView = ImageView(this@MainActivity).apply {
+                    val imageView = ImageView(this).apply {
+                        flipIfNeed(seaCreature.velocity.first)
                         id = seaCreature.id.toInt()
                         setImageResource(seaCreature.image)
+                        setBackgroundColor(Color.BLUE)
                         layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
                         x = seaCreature.position.first
                         y = seaCreature.position.second

@@ -2,8 +2,10 @@ package com.example.myapplication.ext
 
 import android.widget.ImageView
 
-fun ImageView.flip() {
-    this.scaleX = -this.scaleX
+fun ImageView.flipIfNeed(velocityX: Int) {
+    if (velocityX > 0) {
+        this.scaleX = -this.scaleX
+    }
 }
 
 fun ImageView.setSizeImage(size: Int) {
