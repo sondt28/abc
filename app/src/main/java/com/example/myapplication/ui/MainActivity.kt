@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     // 1440f, 2397f
     // 1080f, 1962f
     private val viewModel by lazy {
-        MainViewModel(Pair(1440f, 2397f))
+        MainViewModel(Pair(1080f, 1962f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

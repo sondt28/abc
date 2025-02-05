@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import android.util.Log
 import com.example.myapplication.data.model.SeaCreature
 import com.example.myapplication.data.model.SeaCreatureData
 import com.example.myapplication.util.Rectangle
@@ -33,17 +34,22 @@ class SeaCreatureRepository(private val bounds: Pair<Float, Float>) {
 
 //        seaCreature.startSwim(coroutineScope, bounds)
 
-        val job = coroutineScope.launch {
-            while (isActive) {
-                delay(16)
-                seaCreature.swimming(bounds)
-                checkCollisions()
-                _seaCreatureListFlow.value = _seaCreatureListFlow.value.toMutableList()
+//        val job = coroutineScope.launch {
+//            while (isActive) {
+//                delay(16)
+//                seaCreature.swimming(bounds)
+//                checkCollisions()
+//                _seaCreatureListFlow.value = _seaCreatureListFlow.value.toMutableList()
+//                notifyChangePosition.emit(true)
+//            }
+//        }
+
+        seaCreature.startSwim(coroutineScope, bounds, _seaCreatureListFlow.value) {
+            coroutineScope.launch {
                 notifyChangePosition.emit(true)
             }
         }
-
-        swimmingJobs[seaCreature.id] = job
+//        swimmingJobs[seaCreature.id] = job
     }
 
     private fun checkCollisions(seaCreature: SeaCreature) {
