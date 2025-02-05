@@ -1,6 +1,5 @@
 package com.example.myapplication.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.SeaCreature

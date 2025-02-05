@@ -21,8 +21,8 @@ abstract class SeaCreature(
     var moveBehavior: MoveBehavior
 ) {
     private var job: Job? = null
-    var originalVelocity = this.velocity
     var onEaten: ((SeaCreature) -> Unit) = {}
+    val turnFactor = 0.5f
 
     abstract fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float>
 
@@ -35,17 +35,15 @@ abstract class SeaCreature(
         job = scope.launch {
             while (job?.isActive == true) {
                 delay(DELAY_TIME_MS)
-                val newPosition = swimming(bounds)
-                val collisions = detectCollisions(seaCreatures)
-                handleCollisions(collisions)
-                position = newPosition
+                detectCollisions(seaCreatures)
+                limitSpeed(minSpeed = 2f, maxSpeed = 10f)
+                position = swimming(bounds)
                 onPositionChanged(position)
             }
         }
     }
 
-    private fun detectCollisions(seaCreatures: List<SeaCreature>): List<Pair<SeaCreature, SeaCreature>> {
-        val collisions = mutableListOf<Pair<SeaCreature, SeaCreature>>()
+    private fun detectCollisions(seaCreatures: List<SeaCreature>) {
         for (other in seaCreatures) {
             if (other.id == this.id) continue
             val distance = calculateDistance(this, other)
@@ -53,11 +51,10 @@ abstract class SeaCreature(
             val dangerDistance = (this.size + other.size) * DANGER_DISTANCE_FACTOR
 
             when {
-                distance < eatDistance -> collisions.add(Pair(this, other))
+                distance < eatDistance -> handleCollisions(this, other)
                 distance < dangerDistance -> handleAvoidance(this, other)
             }
         }
-        return collisions
     }
 
     private fun calculateDistance(a: SeaCreature, b: SeaCreature): Double {
@@ -75,12 +72,11 @@ abstract class SeaCreature(
         }
     }
 
-    private fun handleCollisions(collisions: List<Pair<SeaCreature, SeaCreature>>) {
-        for ((a, b) in collisions) {
-            val (bigger, smaller) = if (a.size > b.size) a to b else b to a
-            if (bigger.canEatOther) {
-                onEaten(smaller)
-            }
+    private fun handleCollisions(a: SeaCreature, b: SeaCreature) {
+        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+        if (bigger.canEatOther) {
+            bigger.increaseSizeAfterEating()
+            onEaten(smaller)
         }
     }
 
@@ -89,10 +85,21 @@ abstract class SeaCreature(
     }
 
     fun increaseSizeAfterEating() {
-        this.size += 0
+        this.size += 50
     }
 
-    fun turnAround(seaCreature: SeaCreature) {
+    private fun limitSpeed(minSpeed: Float, maxSpeed: Float) {
+        val (vx, vy) = this.velocity
+        val speed = sqrt(vx * vx + vy * vy)
+
+        if (speed > maxSpeed) {
+            this.velocity = Pair((vx / speed) * maxSpeed, (vy / speed) * maxSpeed)
+        } else if (speed < minSpeed) {
+            this.velocity = Pair((vx / speed) * minSpeed, (vy / speed) * minSpeed)
+        }
+    }
+
+    private fun turnAround(seaCreature: SeaCreature) {
         val directionX = this.position.first - seaCreature.position.first
         val directionY = this.position.second - seaCreature.position.second
 

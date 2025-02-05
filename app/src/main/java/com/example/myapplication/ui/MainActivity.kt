@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     // 1440f, 2397f
     // 1080f, 1962f
     private val viewModel by lazy {
-        MainViewModel(Pair(1440f, 2397f))
+        MainViewModel(Pair(1080f, 1962f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_clear -> {
-                viewModel.removeAll()
+//                viewModel.removeAll()
                 true
             }
 
@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity() {
                         flipIfNeed(seaCreature.velocity.first)
                         id = seaCreature.id.toInt()
                         setImageResource(seaCreature.image)
-//                        setBackgroundColor(Color.BLUE)
                         layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
                         x = seaCreature.position.first
                         y = seaCreature.position.second

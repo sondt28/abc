@@ -1,6 +1,4 @@
-package com.example.myapplication.util
-
-import com.example.myapplication.data.model.SeaCreature
+package com.example.myapplication.data.model
 
 class Rectangle(val x: Float, val y: Float, val width: Float, val height: Float) {
     fun contains(point: SeaCreature): Boolean {

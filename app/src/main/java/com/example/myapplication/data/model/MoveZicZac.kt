@@ -1,25 +1,29 @@
 package com.example.myapplication.data.model
 
-import android.util.Log
-
-
 class MoveZicZac : MoveBehavior {
 
     override fun move(seaCreature: SeaCreature, bounds: Pair<Float, Float>): Pair<Float, Float> {
-        var (newX, newY) = seaCreature.position
+        var (x, y) = seaCreature.position
+        val (vx, vy) = seaCreature.velocity
 
-        newX += seaCreature.velocity.first
-        newY += seaCreature.velocity.second
 
-        if (newX < 0 || newX + seaCreature.size >= bounds.first) {
-            seaCreature.velocity = Pair(-seaCreature.velocity.first, seaCreature.velocity.second)
-            seaCreature.originalVelocity = Pair(-seaCreature.originalVelocity.first, seaCreature.originalVelocity.second)
+
+        val newVx = when {
+            x < 0 -> vx + seaCreature.turnFactor
+            x + seaCreature.size > bounds.first -> vx - seaCreature.turnFactor
+            else -> vx
         }
-        if (newY < 0 || newY + seaCreature.size >= bounds.second) {
-            seaCreature.velocity = Pair(seaCreature.velocity.first, -seaCreature.velocity.second)
-            seaCreature.originalVelocity = Pair(seaCreature.originalVelocity.first, -seaCreature.originalVelocity.second)
+        val newVy = when {
+            y < 0 -> vy + seaCreature.turnFactor
+            y + seaCreature.size > bounds.second -> vy - seaCreature.turnFactor
+            else -> vy
         }
 
-        return Pair(newX, newY)
+        seaCreature.velocity = Pair(newVx, newVy)
+
+        x += seaCreature.velocity.first
+        y += seaCreature.velocity.second
+
+        return Pair(x, y)
     }
 }

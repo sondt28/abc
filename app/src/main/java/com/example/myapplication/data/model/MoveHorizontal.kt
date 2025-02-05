@@ -1,19 +1,19 @@
 package com.example.myapplication.data.model
 
-import android.util.Log
-import kotlinx.coroutines.runBlocking
-
 class MoveHorizontal : MoveBehavior {
     override fun move(seaCreature: SeaCreature, bounds: Pair<Float, Float>): Pair<Float, Float> {
-        var (newX, newY) = seaCreature.position
+        var (x, y) = seaCreature.position
+        val (vx, vy) = seaCreature.velocity
 
-        newX += seaCreature.velocity.first
+        x += seaCreature.velocity.first
 
-        if (newX < 0 || newX + seaCreature.size > bounds.first) {
-            seaCreature.velocity = Pair(-seaCreature.velocity.first, seaCreature.velocity.second)
-            seaCreature.originalVelocity = Pair(-seaCreature.originalVelocity.first, seaCreature.originalVelocity.second)
+        val newVx = when {
+            x < 0 -> vx + seaCreature.turnFactor
+            x + seaCreature.size > bounds.first -> vx - seaCreature.turnFactor
+            else -> vx
         }
 
-        return Pair(newX, newY)
+        seaCreature.velocity = Pair(newVx, vy)
+        return Pair(x, y)
     }
 }
