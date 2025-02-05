@@ -1,16 +1,19 @@
 package com.example.myapplication.data.model
 
-import android.util.Log
 import com.example.myapplication.R
+import com.example.myapplication.util.Const.DANGER_DISTANCE_FACTOR
+import com.example.myapplication.util.Const.DELAY_TIME_MS
+import com.example.myapplication.util.Const.EAT_DISTANCE_FACTOR
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 abstract class SeaCreature(
     val id: Long = System.currentTimeMillis(),
-    var velocity: Pair<Int, Int> = Pair(0, 0),
+    var velocity: Pair<Float, Float> = Pair(0f, 0f),
     var position: Pair<Float, Float> = Pair(0f, 0f),
     var size: Int,
     val canEatOther: Boolean = false,
@@ -18,54 +21,67 @@ abstract class SeaCreature(
     var moveBehavior: MoveBehavior
 ) {
     private var job: Job? = null
-//    private var onPositionChanged: ((Pair<Float, Float>) -> Unit) = {}
+    var originalVelocity = this.velocity
+    var onEaten: ((SeaCreature) -> Unit) = {}
 
     abstract fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float>
 
-    fun startSwim(scope: CoroutineScope, bounds: Pair<Float, Float>, seaCreatures: List<SeaCreature>, onPositionChanged: ((Pair<Float, Float>) -> Unit)) {
+    fun startSwim(
+        scope: CoroutineScope,
+        bounds: Pair<Float, Float>,
+        seaCreatures: List<SeaCreature>,
+        onPositionChanged: ((Pair<Float, Float>) -> Unit),
+    ) {
         job = scope.launch {
             while (job?.isActive == true) {
-                delay(16)
-
-                val separationForce = calculateSeparationForce(seaCreatures)
-                position = swimming(bounds)
+                delay(DELAY_TIME_MS)
+                val newPosition = swimming(bounds)
+                val collisions = detectCollisions(seaCreatures)
+                handleCollisions(collisions)
+                position = newPosition
                 onPositionChanged(position)
             }
         }
     }
 
+    private fun detectCollisions(seaCreatures: List<SeaCreature>): List<Pair<SeaCreature, SeaCreature>> {
+        val collisions = mutableListOf<Pair<SeaCreature, SeaCreature>>()
+        for (other in seaCreatures) {
+            if (other.id == this.id) continue
+            val distance = calculateDistance(this, other)
+            val eatDistance = (this.size + other.size) / EAT_DISTANCE_FACTOR
+            val dangerDistance = (this.size + other.size) * DANGER_DISTANCE_FACTOR
 
-    private fun calculateSeparationForce(boids: List<SeaCreature>): Pair<Float, Float> {
-        val SEPARATION_RADIUS = 100f
-        val SEPARATION_FORCE = 0.1f
-        var forceX = 0f
-        var forceY = 0f
-        var count = 0
-
-        for (other in boids) {
-            if (other == this) continue
-            val dx = position.first - other.position.first
-            val dy = position.second - other.position.second
-            val distance = sqrt(dx * dx + dy * dy)
-
-//            Log.d("SonLN", "Checking ${other.hashCode()} Distance: $distance")
-
-            if (distance < SEPARATION_RADIUS && distance > 0) {
-//                Log.d("SonLN", "d")
-                forceX += dx / distance
-                forceY += dy / distance
-                count++
-                Log.d("SonLN", "distance $distance $forceX $forceY $count")
+            when {
+                distance < eatDistance -> collisions.add(Pair(this, other))
+                distance < dangerDistance -> handleAvoidance(this, other)
             }
         }
+        return collisions
+    }
 
-        if (count > 0) {
-            Log.d("SonLN", "count $count")
-            forceX = (forceX / count) * SEPARATION_FORCE
-            forceY = (forceY / count) * SEPARATION_FORCE
+    private fun calculateDistance(a: SeaCreature, b: SeaCreature): Double {
+        return sqrt(
+            (a.position.first - b.position.first).toDouble().pow(2) +
+                    (a.position.second - b.position.second).toDouble().pow(2)
+        )
+    }
+
+    private fun handleAvoidance(a: SeaCreature, b: SeaCreature) {
+        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+
+        if (smaller.size < bigger.size) {
+            smaller.turnAround(bigger)
         }
-//        Log.d("SonLN", "distance $forceX $forceY")
-        return Pair(forceX, forceY)
+    }
+
+    private fun handleCollisions(collisions: List<Pair<SeaCreature, SeaCreature>>) {
+        for ((a, b) in collisions) {
+            val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+            if (bigger.canEatOther) {
+                onEaten(smaller)
+            }
+        }
     }
 
     fun stopSwim() {
@@ -77,16 +93,19 @@ abstract class SeaCreature(
     }
 
     fun turnAround(seaCreature: SeaCreature) {
+        val directionX = this.position.first - seaCreature.position.first
+        val directionY = this.position.second - seaCreature.position.second
+
         this.velocity = Pair(
-            if (seaCreature.velocity.first < 0) -velocity.first else velocity.first,
-            if (seaCreature.velocity.second < 0) -velocity.second else velocity.second
+            if (directionX > 0) Math.abs(this.velocity.first) else -Math.abs(this.velocity.first),
+            if (directionY > 0) Math.abs(this.velocity.second) else -Math.abs(this.velocity.second)
         )
     }
 }
 
 class Shark(
     size: Int = 250,
-    velocity: Pair<Int, Int> = Pair(8, 2),
+    velocity: Pair<Float, Float> = Pair(8f, 2f),
     canEatOther: Boolean = true,
     imageRes: Int = R.drawable.img_shark,
     position: Pair<Float, Float>,
@@ -107,7 +126,7 @@ class Shark(
 
 class TiniTuna(
     size: Int = 100,
-    velocity: Pair<Int, Int> = Pair(3, 2),
+    velocity: Pair<Float, Float> = Pair(3f, 2f),
     canEatOther: Boolean = false,
     imageRes: Int = R.drawable.img_tuna,
     position: Pair<Float, Float>,

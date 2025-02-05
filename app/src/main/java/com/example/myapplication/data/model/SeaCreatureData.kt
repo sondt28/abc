@@ -5,5 +5,5 @@ data class SeaCreatureData(
     val size: Int,
     val image: Int,
     val position: Pair<Float, Float>,
-    val velocity: Pair<Int, Int>
+    val velocity: Pair<Float, Float>
 )

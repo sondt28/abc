@@ -2,6 +2,7 @@ package com.example.myapplication.ui
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.FrameLayout
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     // 1440f, 2397f
     // 1080f, 1962f
     private val viewModel by lazy {
-        MainViewModel(Pair(1080f, 1962f))
+        MainViewModel(Pair(1440f, 2397f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +105,7 @@ class MainActivity : AppCompatActivity() {
             .map { it.seaCreatures }
             .onEach { seaCreatures ->
                 binding.frameLayout.removeAllViews()
+
                 seaCreatures.forEach { seaCreature ->
                     val imageView = ImageView(this).apply {
                         flipIfNeed(seaCreature.velocity.first)
