@@ -7,7 +7,3 @@ fun ImageView.flipIfNeed(velocityX: Float) {
         this.scaleX = -this.scaleX
     }
 }
-
-fun ImageView.setSizeImage(size: Int) {
-
-}

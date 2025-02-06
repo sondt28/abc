@@ -1,6 +1,6 @@
-package com.example.myapplication.data.model
+package com.example.myapplication.data.model.seacreature
 
-import com.example.myapplication.R
+import android.util.Log
 import com.example.myapplication.util.Const.DANGER_DISTANCE_FACTOR
 import com.example.myapplication.util.Const.DELAY_TIME_MS
 import com.example.myapplication.util.Const.EAT_DISTANCE_FACTOR
@@ -13,16 +13,16 @@ import kotlin.math.sqrt
 
 abstract class SeaCreature(
     val id: Long = System.currentTimeMillis(),
-    var velocity: Pair<Float, Float> = Pair(0f, 0f),
-    var position: Pair<Float, Float> = Pair(0f, 0f),
+    var velocity: Pair<Float, Float>,
+    var position: Pair<Float, Float>,
     var size: Int,
-    val canEatOther: Boolean = false,
+    open val canEatOther: Boolean = false,
     val imageRes: Int,
-    var moveBehavior: MoveBehavior
 ) {
     private var job: Job? = null
-    var onEaten: ((SeaCreature) -> Unit) = {}
     val turnFactor = 0.5f
+    val marginBound = 40f
+    var onEaten: ((SeaCreature) -> Unit) = {}
 
     abstract fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float>
 
@@ -65,18 +65,15 @@ abstract class SeaCreature(
     }
 
     private fun handleAvoidance(a: SeaCreature, b: SeaCreature) {
-        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
-
-        if (smaller.size < bigger.size) {
-            smaller.turnAround(bigger)
+        if (a.size < b.size && a.canEatOther) {
+            a.turnAround(b)
         }
     }
 
     private fun handleCollisions(a: SeaCreature, b: SeaCreature) {
-        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
-        if (bigger.canEatOther) {
-            bigger.increaseSizeAfterEating()
-            onEaten(smaller)
+        if (a.size > b.size && a.canEatOther) {
+            a.increaseSizeAfterEating()
+            onEaten(b)
         }
     }
 
@@ -85,7 +82,11 @@ abstract class SeaCreature(
     }
 
     fun increaseSizeAfterEating() {
-        this.size += 50
+//        if (size > 400) {
+//            this.size = 400
+//        } else {
+//            this.size += 20
+//        }
     }
 
     private fun limitSpeed(minSpeed: Float, maxSpeed: Float) {
@@ -110,45 +111,6 @@ abstract class SeaCreature(
     }
 }
 
-class Shark(
-    size: Int = 250,
-    velocity: Pair<Float, Float> = Pair(8f, 2f),
-    canEatOther: Boolean = true,
-    imageRes: Int = R.drawable.img_shark,
-    position: Pair<Float, Float>,
-    moveBehavior: MoveBehavior = MoveZicZac()
-) : SeaCreature(
-    size = size,
-    velocity = velocity,
-    canEatOther = canEatOther,
-    imageRes = imageRes,
-    position = position,
-    moveBehavior = moveBehavior
-) {
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
-        position = moveBehavior.move(this, bounds)
-        return position
-    }
-}
 
-class TiniTuna(
-    size: Int = 100,
-    velocity: Pair<Float, Float> = Pair(3f, 2f),
-    canEatOther: Boolean = false,
-    imageRes: Int = R.drawable.img_tuna,
-    position: Pair<Float, Float>,
-    moveBehavior: MoveBehavior = MoveHorizontal()
-) : SeaCreature(
-    size = size,
-    velocity = velocity,
-    canEatOther = canEatOther,
-    imageRes = imageRes,
-    position = position,
-    moveBehavior = moveBehavior
-) {
 
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
-        position = moveBehavior.move(this, bounds)
-        return position
-    }
-}
+

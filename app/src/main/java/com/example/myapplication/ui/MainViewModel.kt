@@ -2,15 +2,16 @@ package com.example.myapplication.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.model.SeaCreature
-import com.example.myapplication.data.model.SeaCreatureData
-import com.example.myapplication.data.model.Shark
-import com.example.myapplication.data.model.TiniTuna
+import com.example.myapplication.data.model.seacreature.SeaCreatureData
+import com.example.myapplication.util.SeaCreatureSelectionFactory
+import com.example.myapplication.data.model.seacreature.SeaCreatureType
 import com.example.myapplication.data.repository.SeaCreatureRepository
+import com.example.myapplication.util.RandomSeaCreatureFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
     private val seaCreatureRepository = SeaCreatureRepository(bounds)
@@ -34,26 +35,32 @@ class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
         return seaCreatureRepository.getSeaCreaturesData()
     }
 
-    fun createRandomSeaCreature(position: Pair<Float, Float>) : SeaCreature {
-        val shark = Shark(position = Pair(position.first, position.second))
-        seaCreatureRepository.addSeaCreature(shark)
+    fun createRandomSeaCreature(bounds: Pair<Int, Int>){
+        val (randomX, randomY) = generateRandomPosition(bounds)
+
+        val seaCreature = RandomSeaCreatureFactory.create(Pair(randomX, randomY))
+        seaCreatureRepository.addSeaCreature(seaCreature)
 
         _uiState.update {
             it.copy(seaCreatures = getSeaCreaturesData())
         }
-
-        return shark
     }
 
-    fun createSpecificSeaCreature(position: Pair<Float, Float>) : SeaCreature {
-        val tiniTuna = TiniTuna(position = Pair(position.first, position.second))
-        seaCreatureRepository.addSeaCreature(tiniTuna)
+    fun createSpecificSeaCreature(bounds: Pair<Int, Int>, type: SeaCreatureType) {
+        val (randomX, randomY) = generateRandomPosition(bounds)
+        val seaCreature = SeaCreatureSelectionFactory.create(type, Pair(randomX, randomY))
+        seaCreatureRepository.addSeaCreature(seaCreature)
 
         _uiState.update {
             it.copy(seaCreatures = getSeaCreaturesData())
         }
+    }
 
-        return tiniTuna
+    private fun generateRandomPosition(bounds: Pair<Int, Int>): Pair<Float, Float> {
+        val x = Random.nextInt(0, bounds.first - 200).toFloat()
+        val y = Random.nextInt(0, bounds.second - 200).toFloat()
+
+        return Pair(x, y)
     }
 
     fun removeAll() {

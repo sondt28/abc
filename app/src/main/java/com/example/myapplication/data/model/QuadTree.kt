@@ -1,5 +1,7 @@
 package com.example.myapplication.data.model
 
+import com.example.myapplication.data.model.seacreature.SeaCreature
+
 class Rectangle(val x: Float, val y: Float, val width: Float, val height: Float) {
     fun contains(point: SeaCreature): Boolean {
         return point.position.first >= x && point.position.first <= x + width &&

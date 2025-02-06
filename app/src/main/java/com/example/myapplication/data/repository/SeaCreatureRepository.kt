@@ -1,7 +1,7 @@
 package com.example.myapplication.data.repository
 
-import com.example.myapplication.data.model.SeaCreature
-import com.example.myapplication.data.model.SeaCreatureData
+import com.example.myapplication.data.model.seacreature.SeaCreature
+import com.example.myapplication.data.model.seacreature.SeaCreatureData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

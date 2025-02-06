@@ -8,12 +8,19 @@
         android:title="Random" />
 
     <item
-        android:id="@+id/action_clear"
-        android:icon="@drawable/ic_clear"
-        app:showAsAction="always"
-        android:title="Clear" />
+        android:id="@+id/action_shark"
+        android:title="Shark" />
 
     <item
         android:id="@+id/action_tini_tuna"
         android:title="Tini Tuna" />
+
+    <item
+        android:id="@+id/action_turtle"
+        android:title="Turtle" />
+
+    <item
+        android:id="@+id/action_jellyfish"
+        android:title="Jellyfish" />
+
 </menu>

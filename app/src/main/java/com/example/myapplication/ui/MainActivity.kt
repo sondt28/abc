@@ -1,8 +1,6 @@
 package com.example.myapplication.ui
 
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.FrameLayout
@@ -13,13 +11,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
-import com.example.myapplication.data.model.SeaCreatureData
+import com.example.myapplication.data.model.seacreature.SeaCreatureData
+import com.example.myapplication.data.model.seacreature.SeaCreatureType
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.ext.flipIfNeed
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -27,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     // 1440f, 2397f
     // 1080f, 1962f
     private val viewModel by lazy {
-        MainViewModel(Pair(1080f, 1962f))
+        MainViewModel(Pair(1440f, 2397f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +41,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupViews()
-        setupListeners()
         setupObservers()
     }
 
@@ -53,20 +50,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val (boundX, boundY) = Pair(binding.frameLayout.width, binding.frameLayout.height)
+
         return when (item.itemId) {
             R.id.action_tini_tuna -> {
-                val (randomX, randomY) = generateRandomPosition()
-                viewModel.createSpecificSeaCreature(Pair(randomX, randomY))
+                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.TINI_TUNA)
+                true
+            }
+
+            R.id.action_shark -> {
+                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.SHARK)
+                true
+            }
+
+            R.id.action_turtle -> {
+                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.TURTLE)
+                true
+            }
+
+            R.id.action_jellyfish -> {
+                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.JELLYFISH)
                 true
             }
 
             R.id.action_random -> {
-                addRandomSeaCreature()
-                true
-            }
-
-            R.id.action_clear -> {
-//                viewModel.removeAll()
+                viewModel.createRandomSeaCreature(Pair(boundX, boundY))
                 true
             }
 
@@ -74,20 +82,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addRandomSeaCreature() {
-        val (randomX, randomY) = generateRandomPosition()
-        viewModel.createRandomSeaCreature(Pair(randomX, randomY))
-    }
-
-    private fun generateRandomPosition(): Pair<Float, Float> {
-        val x = Random.nextInt(0, binding.frameLayout.width - 200).toFloat()
-        val y = Random.nextInt(0, binding.frameLayout.height - 200).toFloat()
-
-        return Pair(x, y)
-    }
-
     private fun createSeaCreatureImageView(seaCreature: SeaCreatureData): ImageView {
         return ImageView(this).apply {
+            flipIfNeed(seaCreature.velocity.first)
             id = seaCreature.id.toInt()
             setImageResource(seaCreature.image)
             layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
@@ -107,21 +104,10 @@ class MainActivity : AppCompatActivity() {
                 binding.frameLayout.removeAllViews()
 
                 seaCreatures.forEach { seaCreature ->
-                    val imageView = ImageView(this).apply {
-                        flipIfNeed(seaCreature.velocity.first)
-                        id = seaCreature.id.toInt()
-                        setImageResource(seaCreature.image)
-                        layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
-                        x = seaCreature.position.first
-                        y = seaCreature.position.second
-                    }
+                    val imageView = createSeaCreatureImageView(seaCreature)
                     binding.frameLayout.addView(imageView)
                 }
             }
             .launchIn(lifecycleScope)
-    }
-
-    private fun setupListeners() {
-
     }
 }
