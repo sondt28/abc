@@ -1,6 +1,5 @@
 package com.example.myapplication.data.model.seacreature
 
-import android.util.Log
 import com.example.myapplication.util.Const.DANGER_DISTANCE_FACTOR
 import com.example.myapplication.util.Const.DELAY_TIME_MS
 import com.example.myapplication.util.Const.EAT_DISTANCE_FACTOR
@@ -71,9 +70,10 @@ abstract class SeaCreature(
     }
 
     private fun handleCollisions(a: SeaCreature, b: SeaCreature) {
-        if (a.size > b.size && a.canEatOther) {
-            a.increaseSizeAfterEating()
-            onEaten(b)
+        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+        if (bigger.canEatOther) {
+            onEaten(smaller)
+            bigger.increaseSizeAfterEating()
         }
     }
 
@@ -82,11 +82,7 @@ abstract class SeaCreature(
     }
 
     fun increaseSizeAfterEating() {
-//        if (size > 400) {
-//            this.size = 400
-//        } else {
-//            this.size += 20
-//        }
+        this.size++
     }
 
     private fun limitSpeed(minSpeed: Float, maxSpeed: Float) {
