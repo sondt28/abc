@@ -6,12 +6,14 @@ class JellyFish(
     size: Int = 150,
     velocity: Pair<Float, Float> = Pair(3f, 3f),
     imageRes: Int = R.drawable.img_jellyfish,
-    position: Pair<Float, Float>
+    position: Pair<Float, Float>,
+    maxSize: Int = 170
 ) : SeaCreature(
     size = size,
     velocity = velocity,
     imageRes = imageRes,
-    position = position
+    position = position,
+    maxSize = maxSize
 ) {
     override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
@@ -29,5 +31,9 @@ class JellyFish(
 
         position = Pair(x, y)
         return position
+    }
+
+    override fun getType(): SeaCreatureType {
+        return SeaCreatureType.JELLYFISH
     }
 }

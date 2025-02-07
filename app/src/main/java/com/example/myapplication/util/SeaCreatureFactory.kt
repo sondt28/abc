@@ -7,9 +7,35 @@ import com.example.myapplication.data.model.seacreature.Shark
 import com.example.myapplication.data.model.seacreature.TiniTuna
 import com.example.myapplication.data.model.seacreature.Turtle
 
-object SeaCreatureSelectionFactory {
+object SeaCreatureFactory {
     fun create(type: SeaCreatureType, position: Pair<Float, Float>): SeaCreature {
         return when (type) {
+            SeaCreatureType.TINI_TUNA -> {
+                return TiniTuna(position = position)
+            }
+
+            SeaCreatureType.SHARK -> {
+                return Shark(position = position)
+            }
+
+            SeaCreatureType.TURTLE -> {
+                return Turtle(position = position)
+            }
+
+            SeaCreatureType.JELLYFISH -> {
+                return JellyFish(position = position)
+            }
+
+            else -> {
+                throw IllegalArgumentException("Invalid SeaCreatureType")
+            }
+        }
+    }
+    
+    fun create(position: Pair<Float, Float>): SeaCreature {
+        val randomType = SeaCreatureType.entries.toTypedArray().random()
+
+        return when (randomType) {
             SeaCreatureType.TINI_TUNA -> {
                 return TiniTuna(position = position)
             }

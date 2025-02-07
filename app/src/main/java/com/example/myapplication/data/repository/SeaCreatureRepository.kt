@@ -31,15 +31,12 @@ class SeaCreatureRepository(private val bounds: Pair<Float, Float>) {
 
         seaCreatureDataSource.addSeaCreature(seaCreature)
 
-        seaCreature.startSwim(
-            coroutineScope,
-            bounds,
-            _seaCreatureListFlow.value,
-            onPositionChanged = {
-                coroutineScope.launch {
-                    notifyChangePosition.emit(true)
-                }
-            })
+        seaCreature.startSwim(coroutineScope, bounds) {
+            coroutineScope.launch {
+                seaCreature.detectCollisions(_seaCreatureListFlow.value)
+                notifyChangePosition.emit(true)
+            }
+        }
 
         seaCreature.onEaten = {
             removeSeaCreature(it)

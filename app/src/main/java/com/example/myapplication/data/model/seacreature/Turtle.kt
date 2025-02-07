@@ -3,15 +3,19 @@ package com.example.myapplication.data.model.seacreature
 import com.example.myapplication.R
 
 class Turtle(
-    size: Int = 180,
+    size: Int = 150,
     velocity: Pair<Float, Float> = Pair(2f, 1f),
     imageRes: Int = R.drawable.img_turtle,
-    position: Pair<Float, Float>
+    position: Pair<Float, Float>,
+    canEatOther: Boolean = true,
+    maxSize: Int = 200
 ) : SeaCreature(
     size = size,
     velocity = velocity,
     imageRes = imageRes,
-    position = position
+    position = position,
+    canEatOther = canEatOther,
+    maxSize = maxSize
 ) {
     override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
@@ -36,5 +40,9 @@ class Turtle(
         position = Pair(x, y)
 
         return position
+    }
+
+    override fun getType(): SeaCreatureType {
+        return SeaCreatureType.TURTLE
     }
 }

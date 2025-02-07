@@ -1,5 +1,6 @@
 package com.example.myapplication.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -54,27 +55,27 @@ class MainActivity : AppCompatActivity() {
 
         return when (item.itemId) {
             R.id.action_tini_tuna -> {
-                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.TINI_TUNA)
+                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.TINI_TUNA)
                 true
             }
 
             R.id.action_shark -> {
-                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.SHARK)
+                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.SHARK)
                 true
             }
 
             R.id.action_turtle -> {
-                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.TURTLE)
+                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.TURTLE)
                 true
             }
 
             R.id.action_jellyfish -> {
-                viewModel.createSpecificSeaCreature(Pair(boundX, boundY), SeaCreatureType.JELLYFISH)
+                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.JELLYFISH)
                 true
             }
 
             R.id.action_random -> {
-                viewModel.createRandomSeaCreature(Pair(boundX, boundY))
+                viewModel.createSeaCreature(boundX to boundY)
                 true
             }
 
@@ -82,19 +83,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun createSeaCreatureImageView(seaCreature: SeaCreatureData): ImageView {
-        return ImageView(this).apply {
-            flipIfNeed(seaCreature.velocity.first)
-            id = seaCreature.id.toInt()
-            setImageResource(seaCreature.image)
-            layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
-            x = seaCreature.position.first
-            y = seaCreature.position.second
-        }
-    }
-
     private fun setupViews() {
         setSupportActionBar(binding.toolbar)
+
     }
 
     private fun setupObservers() {
@@ -109,5 +100,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .launchIn(lifecycleScope)
+    }
+
+    private fun createSeaCreatureImageView(seaCreature: SeaCreatureData): ImageView {
+        return ImageView(this).apply {
+            flipIfNeed(seaCreature.velocity.first)
+            id = seaCreature.id.toInt()
+            setImageResource(seaCreature.image)
+            setBackgroundColor(Color.BLUE)
+            layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
+            x = seaCreature.position.first
+            y = seaCreature.position.second
+        }
     }
 }
