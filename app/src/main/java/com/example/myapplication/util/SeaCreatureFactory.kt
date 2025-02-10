@@ -7,8 +7,15 @@ import com.example.myapplication.data.model.seacreature.Shark
 import com.example.myapplication.data.model.seacreature.TiniTuna
 import com.example.myapplication.data.model.seacreature.Turtle
 
-object SeaCreatureFactory {
-    fun create(type: SeaCreatureType, position: Pair<Float, Float>): SeaCreature {
+interface SeaCreatureFactory {
+    fun create(map: Map<String, Any>) : SeaCreature
+}
+
+class SeaCreatureSelectionFactory : SeaCreatureFactory {
+    override fun create(map: Map<String, Any>): SeaCreature {
+        val type = map["type"] as SeaCreatureType
+        val position = map["position"] as Pair<Float, Float>
+
         return when (type) {
             SeaCreatureType.TINI_TUNA -> {
                 return TiniTuna(position = position)
@@ -31,8 +38,11 @@ object SeaCreatureFactory {
             }
         }
     }
-    
-    fun create(position: Pair<Float, Float>): SeaCreature {
+}
+
+class SeaCreatureRandomFactory : SeaCreatureFactory {
+    override fun create(map: Map<String, Any>): SeaCreature {
+        val position = map["position"] as Pair<Float, Float>
         val randomType = SeaCreatureType.entries.toTypedArray().random()
 
         return when (randomType) {

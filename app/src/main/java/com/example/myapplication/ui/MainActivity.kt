@@ -4,12 +4,14 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.R
 import com.example.myapplication.data.model.seacreature.SeaCreatureData
@@ -26,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     // 1440f, 2397f
     // 1080f, 1962f
     private val viewModel by lazy {
-        MainViewModel(Pair(1440f, 2397f))
+        MainViewModel(Pair(1080f, 1962f))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,52 +53,63 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val (boundX, boundY) = Pair(binding.frameLayout.width, binding.frameLayout.height)
+        val bounds = Pair(binding.frameLayout.width, binding.frameLayout.height)
 
         return when (item.itemId) {
-            R.id.action_tini_tuna -> {
-                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.TINI_TUNA)
-                true
-            }
-
-            R.id.action_shark -> {
-                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.SHARK)
-                true
-            }
-
-            R.id.action_turtle -> {
-                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.TURTLE)
-                true
-            }
-
-            R.id.action_jellyfish -> {
-                viewModel.createSeaCreature(boundX to boundY, SeaCreatureType.JELLYFISH)
-                true
-            }
-
-            R.id.action_random -> {
-                viewModel.createSeaCreature(boundX to boundY)
-                true
-            }
+            R.id.action_tini_tuna -> spawnSeaCreature(bounds, SeaCreatureType.TINI_TUNA)
+            R.id.action_shark -> spawnSeaCreature(bounds, SeaCreatureType.SHARK)
+            R.id.action_turtle -> spawnSeaCreature(bounds, SeaCreatureType.TURTLE)
+            R.id.action_jellyfish -> spawnSeaCreature(bounds, SeaCreatureType.JELLYFISH)
+            R.id.action_random -> spawnSeaCreature(bounds)
 
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    private fun spawnSeaCreature(bounds: Pair<Int, Int>,type: SeaCreatureType? = null): Boolean {
+        viewModel.createSeaCreature(bounds, type) {
+            runOnUiThread {
+                updateViewIfNeed(it)
+            }
+        }
+        return true
+    }
+
+    private fun updateViewIfNeed(seaCreatureData: SeaCreatureData) {
+        val imageView = findViewById<ImageView>(seaCreatureData.id.toInt())
+
+        if (imageView != null) {
+            imageView.flipIfNeed(seaCreatureData.velocity.first)
+            imageView.layoutParams = FrameLayout.LayoutParams(seaCreatureData.size, seaCreatureData.size)
+            imageView.x = seaCreatureData.position.first
+            imageView.y = seaCreatureData.position.second
+        }
+    }
+
     private fun setupViews() {
         setSupportActionBar(binding.toolbar)
-
     }
 
     private fun setupObservers() {
-        viewModel.uiState
-            .map { it.seaCreatures }
+        viewModel.seaCreaturesFlow
+            .map { it }
             .onEach { seaCreatures ->
-                binding.frameLayout.removeAllViews()
+                val seaCreaturesIds = seaCreatures.map { it.id.toInt() }
+                val viewToRemove = mutableListOf<View>()
 
-                seaCreatures.forEach { seaCreature ->
-                    val imageView = createSeaCreatureImageView(seaCreature)
-                    binding.frameLayout.addView(imageView)
+                for (imageView in binding.frameLayout.children) {
+                    if (imageView.id !in seaCreaturesIds) {
+                        viewToRemove.add(imageView)
+                    }
+                }
+
+                viewToRemove.forEach { binding.frameLayout.removeView(it) }
+
+                seaCreatures.forEach {
+                    val imageView = findViewById<ImageView>(it.id.toInt())
+                    if (imageView == null) {
+                        binding.frameLayout.addView(createSeaCreatureImageView(it))
+                    }
                 }
             }
             .launchIn(lifecycleScope)
@@ -105,10 +118,11 @@ class MainActivity : AppCompatActivity() {
     private fun createSeaCreatureImageView(seaCreature: SeaCreatureData): ImageView {
         return ImageView(this).apply {
             flipIfNeed(seaCreature.velocity.first)
+            layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
+
             id = seaCreature.id.toInt()
             setImageResource(seaCreature.image)
             setBackgroundColor(Color.BLUE)
-            layoutParams = FrameLayout.LayoutParams(seaCreature.size, seaCreature.size)
             x = seaCreature.position.first
             y = seaCreature.position.second
         }

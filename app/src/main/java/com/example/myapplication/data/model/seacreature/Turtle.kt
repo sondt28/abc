@@ -3,12 +3,13 @@ package com.example.myapplication.data.model.seacreature
 import com.example.myapplication.R
 
 class Turtle(
-    size: Int = 150,
+    size: Int = 160,
     velocity: Pair<Float, Float> = Pair(2f, 1f),
     imageRes: Int = R.drawable.img_turtle,
     position: Pair<Float, Float>,
     canEatOther: Boolean = true,
-    maxSize: Int = 200
+    maxSize: Int = 200,
+    override val limitSpeed: Pair<Float, Float> = Pair(1f, 3f)
 ) : SeaCreature(
     size = size,
     velocity = velocity,
@@ -17,18 +18,18 @@ class Turtle(
     canEatOther = canEatOther,
     maxSize = maxSize
 ) {
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
+    override fun move(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
         val (vx, vy) = velocity
 
         val newVx = when {
-            x - marginBound < 0 -> vx + turnFactor
-            x + marginBound + size > bounds.first -> vx - turnFactor
+            x - MARGIN_BOUND < 0 -> vx + TURN_FACTOR
+            x + MARGIN_BOUND + size > bounds.first -> vx - TURN_FACTOR
             else -> vx
         }
         val newVy = when {
-            y - marginBound < 0 -> vy + turnFactor
-            y + marginBound + size > bounds.second -> vy - turnFactor
+            y - MARGIN_BOUND < 0 -> vy + TURN_FACTOR
+            y + MARGIN_BOUND + size > bounds.second -> vy - TURN_FACTOR
             else -> vy
         }
 

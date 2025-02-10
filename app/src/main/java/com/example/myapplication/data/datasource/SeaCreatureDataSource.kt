@@ -1,5 +1,6 @@
 package com.example.myapplication.data.datasource
 
+import android.util.Log
 import com.example.myapplication.data.model.seacreature.SeaCreature
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow

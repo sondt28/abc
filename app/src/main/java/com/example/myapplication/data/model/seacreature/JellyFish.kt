@@ -7,7 +7,8 @@ class JellyFish(
     velocity: Pair<Float, Float> = Pair(3f, 3f),
     imageRes: Int = R.drawable.img_jellyfish,
     position: Pair<Float, Float>,
-    maxSize: Int = 170
+    maxSize: Int = 160,
+    override val limitSpeed: Pair<Float, Float> = Pair(1f, 5f)
 ) : SeaCreature(
     size = size,
     velocity = velocity,
@@ -15,15 +16,15 @@ class JellyFish(
     position = position,
     maxSize = maxSize
 ) {
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
+    override fun move(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
         val (vx, vy) = velocity
 
         y += velocity.second
 
         val newVy = when {
-            y - marginBound < 0 -> vy + turnFactor
-            y + marginBound + size > bounds.first -> vy - turnFactor
+            y - MARGIN_BOUND < 0 -> vy + TURN_FACTOR
+            y + MARGIN_BOUND + size > bounds.first -> vy - TURN_FACTOR
             else -> vy
         }
 

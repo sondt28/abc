@@ -5,53 +5,48 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.seacreature.SeaCreatureData
 import com.example.myapplication.data.model.seacreature.SeaCreatureType
 import com.example.myapplication.data.repository.SeaCreatureRepository
-import com.example.myapplication.util.SeaCreatureFactory
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import com.example.myapplication.util.Const.POSITION
+import com.example.myapplication.util.Const.TYPE
+import com.example.myapplication.util.SeaCreatureRandomFactory
+import com.example.myapplication.util.SeaCreatureSelectionFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class MainViewModel(private val bounds: Pair<Float, Float>) : ViewModel() {
     private val seaCreatureRepository = SeaCreatureRepository(bounds)
 
-    private val _uiState = MutableStateFlow(UiState(seaCreatures = getSeaCreaturesData()))
-    val uiState = _uiState.asStateFlow()
+    val seaCreaturesFlow = getSeaCreaturesData()
+    private val seaCreatureSelectionFactory: SeaCreatureSelectionFactory = SeaCreatureSelectionFactory()
+    private val seaCreatureRandomFactory: SeaCreatureRandomFactory = SeaCreatureRandomFactory()
 
     init {
-        collectSeaCreatures()
-    }
-
-    private fun collectSeaCreatures() {
-        viewModelScope.launch {
-            seaCreatureRepository.notifyChangePosition.collect { creatures ->
-                _uiState.update { it.copy(seaCreatures = getSeaCreaturesData()) }
+        viewModelScope.launch(Dispatchers.Default) {
+            while (viewModelScope.isActive) {
+                delay(16)
+                seaCreatureRepository.detectCollisions()
             }
         }
     }
 
-    private fun getSeaCreaturesData(): List<SeaCreatureData> {
+    private fun getSeaCreaturesData(): Flow<List<SeaCreatureData>> {
         return seaCreatureRepository.getSeaCreaturesData()
     }
 
-    fun createSeaCreature(bounds: Pair<Int, Int>){
+    fun createSeaCreature(bounds: Pair<Int, Int>, type: SeaCreatureType? = null, onPositionChanged: (SeaCreatureData) -> Unit) {
         val (randomX, randomY) = generateRandomPosition(bounds)
 
-        val seaCreature = SeaCreatureFactory.create(Pair(randomX, randomY))
-        seaCreatureRepository.addSeaCreature(seaCreature)
-
-        _uiState.update {
-            it.copy(seaCreatures = getSeaCreaturesData())
+        val seaCreature = if (type != null) {
+            seaCreatureSelectionFactory.create(mapOf(TYPE to type, POSITION to Pair(randomX, randomY)))
+        } else {
+            seaCreatureRandomFactory.create(mapOf(POSITION to Pair(randomX, randomY)))
         }
-    }
 
-    fun createSeaCreature(bounds: Pair<Int, Int>, type: SeaCreatureType) {
-        val (randomX, randomY) = generateRandomPosition(bounds)
-        val seaCreature = SeaCreatureFactory.create(type, Pair(randomX, randomY))
-        seaCreatureRepository.addSeaCreature(seaCreature)
-
-        _uiState.update {
-            it.copy(seaCreatures = getSeaCreaturesData())
+        seaCreatureRepository.addSeaCreature(seaCreature) {
+            onPositionChanged(it)
         }
     }
 

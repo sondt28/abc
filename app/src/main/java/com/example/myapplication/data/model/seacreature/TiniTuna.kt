@@ -8,6 +8,7 @@ class TiniTuna(
     imageRes: Int = R.drawable.img_tuna,
     position: Pair<Float, Float>,
     maxSize: Int = 100,
+    override val limitSpeed: Pair<Float, Float> = Pair(1f, 5f)
 ) : SeaCreature(
     size = size,
     velocity = velocity,
@@ -15,15 +16,15 @@ class TiniTuna(
     position = position,
     maxSize = maxSize
 ) {
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
+    override fun move(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
         val (vx, vy) = velocity
 
         x += velocity.first
 
         val newVx = when {
-            x - 40 < 0 -> vx + turnFactor
-            x + 40 + size > bounds.first -> vx - turnFactor
+            x - MARGIN_BOUND < 0 -> vx + TURN_FACTOR
+            x + MARGIN_BOUND + size > bounds.first -> vx - TURN_FACTOR
             else -> vx
         }
 

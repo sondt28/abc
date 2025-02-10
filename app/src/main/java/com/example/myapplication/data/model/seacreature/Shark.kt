@@ -3,7 +3,7 @@ package com.example.myapplication.data.model.seacreature
 import com.example.myapplication.R
 
 class Shark(
-    size: Int = 140,
+    size: Int = 150,
     velocity: Pair<Float, Float> = Pair(8f, 2f),
     override val canEatOther: Boolean = true,
     imageRes: Int = R.drawable.img_shark,
@@ -16,19 +16,19 @@ class Shark(
     maxSize = maxSize,
     imageRes = imageRes
 ) {
-    override fun swimming(bounds: Pair<Float, Float>): Pair<Float, Float> {
+    override fun move(bounds: Pair<Float, Float>): Pair<Float, Float> {
         var (x, y) = position
         val (vx, vy) = velocity
 
         val newVx = when {
-            x - marginBound < 0 -> vx + turnFactor
-            x + marginBound + size > bounds.first -> vx - turnFactor
+            x - MARGIN_BOUND < 0 -> vx + TURN_FACTOR
+            x + MARGIN_BOUND + size > bounds.first -> vx - TURN_FACTOR
             else -> vx
         }
 
         val newVy = when {
-            y - marginBound < 0 -> vy + turnFactor
-            y + marginBound + size > bounds.second -> vy - turnFactor
+            y - MARGIN_BOUND < 0 -> vy + TURN_FACTOR
+            y + MARGIN_BOUND + size > bounds.second -> vy - TURN_FACTOR
             else -> vy
         }
 

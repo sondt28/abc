@@ -1,41 +1,27 @@
 package com.example.myapplication.data.repository
 
-import com.example.myapplication.data.datasource.SeaCreatureDataSource
 import com.example.myapplication.data.model.seacreature.SeaCreature
 import com.example.myapplication.data.model.seacreature.SeaCreatureData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class SeaCreatureRepository(private val bounds: Pair<Float, Float>) {
-    private val seaCreatureDataSource = SeaCreatureDataSource()
-    private val _seaCreatureListFlow = MutableStateFlow<List<SeaCreature>>(listOf())
-    val notifyChangePosition: MutableSharedFlow<Boolean> = MutableSharedFlow()
-
+    private val _seaCreaturesFlow = MutableStateFlow(emptyList<SeaCreature>())
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    private val flow = seaCreatureDataSource.getSeaCreatures()
-        .flowOn(Dispatchers.IO)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, listOf())
+    fun addSeaCreature(seaCreature: SeaCreature, onPositionChanged: (SeaCreatureData) -> Unit) {
+        _seaCreaturesFlow.value += seaCreature
+        seaCreature.startSwim(coroutineScope, bounds)
 
-    fun addSeaCreature(seaCreature: SeaCreature) {
-        val currentList = _seaCreatureListFlow.value.toMutableList()
-        currentList.add(seaCreature)
-        _seaCreatureListFlow.value = currentList
-
-        seaCreatureDataSource.addSeaCreature(seaCreature)
-
-        seaCreature.startSwim(coroutineScope, bounds) {
-            coroutineScope.launch {
-                seaCreature.detectCollisions(_seaCreatureListFlow.value)
-                notifyChangePosition.emit(true)
-            }
+        seaCreature.onPositionChanged = {
+            onPositionChanged(
+                it.toSeaCreatureData()
+            )
         }
 
         seaCreature.onEaten = {
@@ -43,28 +29,59 @@ class SeaCreatureRepository(private val bounds: Pair<Float, Float>) {
         }
     }
 
-    fun getSeaCreaturesData(): List<SeaCreatureData> {
-        return _seaCreatureListFlow.value.map {
-            SeaCreatureData(
-                id = it.id,
-                size = it.size,
-                image = it.imageRes,
-                position = it.position,
-                velocity = it.velocity
-            )
+    fun detectCollisions() {
+        val seaCreatures = _seaCreaturesFlow.value
+        if (seaCreatures.size < 2) return
+
+        for (i in seaCreatures.indices) {
+            for (j in i + 1 until seaCreatures.size) {
+                val creature1 = seaCreatures[i]
+                val creature2 = seaCreatures[j]
+                val distance = calculateDistance(creature1, creature2)
+                val deadRange = (creature1.size + creature2.size) / 2
+                val warningRange = (creature1.size + creature2.size)
+
+                when {
+                    distance < deadRange -> handlePredation(creature1, creature2)
+                    distance < warningRange -> handleAvoidanceOrChase(creature1, creature2)
+                }
+            }
+        }
+
+    }
+
+    private fun calculateDistance(a: SeaCreature, b: SeaCreature): Double {
+        return sqrt(
+            (a.position.first - b.position.first).toDouble().pow(2) +
+                    (a.position.second - b.position.second).toDouble().pow(2)
+        )
+    }
+
+    private fun handlePredation(a: SeaCreature, b: SeaCreature) {
+        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+
+        bigger.eating(smaller)
+        removeSeaCreature(smaller)
+    }
+
+    private fun handleAvoidanceOrChase(a: SeaCreature, b: SeaCreature) {
+        val (bigger, smaller) = if (a.size > b.size) a to b else b to a
+
+        if (bigger.canEatOther && smaller.size < bigger.size) {
+            smaller.escapeFrom(bigger)
+        }
+    }
+
+    fun getSeaCreaturesData(): Flow<List<SeaCreatureData>> {
+        return _seaCreaturesFlow.map { seaCreatures ->
+            seaCreatures.map {
+                it.toSeaCreatureData()
+            }
         }
     }
 
     private fun removeSeaCreature(seaCreature: SeaCreature) {
         seaCreature.stopSwim()
-        val currentList = _seaCreatureListFlow.value.toMutableList()
-        currentList.remove(seaCreature)
-        _seaCreatureListFlow.value = currentList
-    }
-
-    fun removeAll() {
-        coroutineScope.cancel()
-        _seaCreatureListFlow.value = listOf()
-        notifyChangePosition.tryEmit(true)
+        _seaCreaturesFlow.value -= seaCreature
     }
 }
